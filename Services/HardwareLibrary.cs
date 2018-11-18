@@ -52,5 +52,12 @@ namespace DSTools
 
             return model;
         }
+
+        public static string DeviceID()
+        {
+            string model = Querysystem("UUID");
+
+            return model;
+        }
     }
 }
