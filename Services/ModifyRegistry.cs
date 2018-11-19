@@ -71,7 +71,8 @@ namespace DSTools.ModifyRegistry
                         throw new Exception(String.Format("Open {0} subkey failed!", subKey));
                 }
                 else
-                    return Value;
+                { return Value; }
+
             }
             object value = sk1.GetValue(KeyName);
             if (value == null)
@@ -89,8 +90,10 @@ namespace DSTools.ModifyRegistry
                     return Value;
                 }
             }
-            if ((valueKind != RegistryValueKind.Unknown) && (valueKind != sk1.GetValueKind(KeyName)))
-                throw new Exception(String.Format("Invalid registry data type {0}.", valueKind));
+            //if ((valueKind != RegistryValueKind.Unknown) && (valueKind != sk1.GetValueKind(KeyName)))
+            //{
+            //    throw new Exception(String.Format("Invalid registry data type {0}.", valueKind));
+            //}
             sk1.Close();
             return value;
         }

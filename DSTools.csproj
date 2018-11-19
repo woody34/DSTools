@@ -51,8 +51,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -79,9 +81,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ActivateWindows.cs" />
+    <Compile Include="Services\FileMove.cs" />
     <Compile Include="Services\HardwareLibrary.cs" />
     <Compile Include="Services\KeyFinder.cs" />
     <Compile Include="Services\ModifyRegistry.cs" />
+    <Compile Include="Services\RestartProcess.cs" />
     <EmbeddedResource Include="Ak.resx">
       <DependentUpon>Ak.cs</DependentUpon>
     </EmbeddedResource>
@@ -159,6 +163,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Services\TotalUninstaller.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
