@@ -1,21 +1,25 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using System.Security.Principal;
 using Microsoft.VisualBasic.FileIO;
 using System.Security.Permissions;
-using System.Security.AccessControl;
 using System.Net;
 using System.ComponentModel;
+using System.Net.Mail;
+using IniParser;
+using IniParser.Model;
+using NETCore.Encrypt;
 
 namespace DSTools
 {
     public partial class FormDSTools : Form
     {
+        
+
         public FormDSTools()
         {
             InitializeComponent();
@@ -53,14 +57,38 @@ namespace DSTools
             desktopLocation.Text = userShellFolders.ReadString("{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}");
             documents.Text = userShellFolders.ReadString("Personal");
             deviceID.Text = HardwareLibrary.DeviceID();
+            LoadAdminGroup();
 
             bool onedriveInstalled = (onedriveFolder.ReadString(@"UserFolder") == null) ? false : true;
             if (onedriveInstalled)
             {
-                onedrive.Text = onedriveFolder.ReadString("UserFolder") +
-                    "|Version:" + onedriveVersionFolder.ReadString("Version");
+                onedrive.Text = onedriveFolder.ReadString("UserFolder");
+                version.Text = onedriveVersionFolder.ReadString("Version");
                 Thread.Sleep(200);
                 onedriveButton.Enabled = true;
+            }
+        }
+
+        private void LoadAdminGroup()
+        {
+            try
+            {
+
+                string newAdmin = newAdminUsername.Text;
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = @"net";
+                psi.Arguments = "localgroup administrators";
+                psi.UseShellExecute = false;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+                Process proc = Process.Start(psi);
+                string stdOut = proc.StandardOutput.ReadToEnd();
+                stdOut = stdOut.Remove(0, 217);
+                adminGroup.Text = stdOut;
+            }
+            catch (Win32Exception ee)
+            {
+                MessageBox.Show(ee.Message);
             }
         }
 
@@ -77,35 +105,25 @@ namespace DSTools
 
             RestartProcess.KillProcessByFileName("OneDrive");
 
-            if (desktopShellPath != defaultDesktopShellPath)
-            {
-                try
-                {
-                    userShellFolders.WriteString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}", defaultDesktopShellPath);
-                    userShellFolders.WriteString(@"Desktop", defaultDesktopShellPath);
 
-                    Thread.Sleep(100);
-                    RestartProcess.KillProcessByFileName("explorer");
-                }
-                catch (Exception fileMoveE)
-                {
-                    MessageBox.Show(fileMoveE.Message);
-                }
-            }
+            userShellFolders.WriteString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}", defaultDesktopShellPath);
+            userShellFolders.WriteString(@"Desktop", defaultDesktopShellPath);
 
             try
             {
                 if (documentsShellPath != defaultDocumentsShellPath)
                 {
                     FileSystem.CopyDirectory(documentsShellPath, defaultDocumentsShellPath, false);
-                    userShellFolders.WriteString(@"Personal", defaultDocumentsShellPath);
                 }
-                RestartProcess.KillProcessByFileName("explorer");
             }
             catch (Exception fileMoveE)
             {
                 MessageBox.Show(fileMoveE.Message);
             }
+
+            userShellFolders.WriteString(@"Personal", defaultDocumentsShellPath);
+
+            RestartProcess.KillProcessByFileName("explorer");
 
             Process.Start("explorer.exe");
 
@@ -135,12 +153,12 @@ namespace DSTools
 
         private void UpdateHost_Click(object sender, EventArgs e)
         {
-            ProcessStartInfo process = new ProcessStartInfo();
-            process.FileName = @"WMIC.exe";
-            process.UseShellExecute = false;
-            process.RedirectStandardOutput = true;
-            process.Arguments = @"ComputerSystem where Name='" + HardwareLibrary.ComputerName() + @"' call Rename Name='" + hostname.Text + "'";
-            Process proc = Process.Start(process);
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = @"WMIC.exe";
+            psi.UseShellExecute = false;
+            psi.RedirectStandardOutput = true;
+            psi.Arguments = @"ComputerSystem where Name='" + HardwareLibrary.ComputerName() + @"' call Rename Name='" + hostname.Text + "'";
+            Process proc = Process.Start(psi);
             MessageBox.Show(proc.StandardOutput.ReadToEnd());
         }
 
@@ -166,19 +184,18 @@ namespace DSTools
             ModifyRegistry.ModifyRegistry userShellFolders = new ModifyRegistry.ModifyRegistry(Registry.CurrentUser, @"Microsoft", @"Windows\CurrentVersion\Explorer\User Shell Folders");
             ModifyRegistry.ModifyRegistry onedriveFolder = new ModifyRegistry.ModifyRegistry(Registry.CurrentUser, @"Microsoft", @"Onedrive\Accounts\Business1");
 
+            string oneDriveDesktopPath = onedriveFolder.ReadString("UserFolder") + @"\Desktop\";
+            string oneDriveDocumentsPath = onedriveFolder.ReadString(@"UserFolder") + @"\Documents\";
+            string desktopShellPath = userShellFolders.ReadString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}") + @"\";
+            string documentsShellPath = userShellFolders.ReadString(@"Personal") + @"\";
+
             try
             {
-                string oneDriveDesktopPath = onedriveFolder.ReadString("UserFolder") + @"\Desktop\";
-                string desktopShellPath = userShellFolders.ReadString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}") + @"\";
-
                 if (@desktopShellPath != @oneDriveDesktopPath)
                 {
                     UIOption showUI = UIOption.AllDialogs;
                     UICancelOption onUserCancel = UICancelOption.ThrowException;
                     FileSystem.CopyDirectory(@desktopShellPath, @oneDriveDesktopPath, showUI, onUserCancel);
-
-                    userShellFolders.WriteString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}", @oneDriveDesktopPath.TrimEnd(char.Parse(@"\")));
-                    userShellFolders.WriteString(@"Desktop", @oneDriveDesktopPath.TrimEnd(char.Parse(@"\")));
                 }
             }
             catch (Exception dMoveEx)
@@ -186,10 +203,12 @@ namespace DSTools
                 MessageBox.Show(dMoveEx.Message + dMoveEx.TargetSite);
             }
 
+            userShellFolders.WriteString(@"{754AC886-DF64-4CBA-86B5-F7FBF4FBCEF5}", @oneDriveDesktopPath.TrimEnd(char.Parse(@"\")));
+            userShellFolders.WriteString(@"Desktop", @oneDriveDesktopPath.TrimEnd(char.Parse(@"\")));
+
             try
             {
-                string oneDriveDocumentsPath = onedriveFolder.ReadString(@"UserFolder") + @"\Documents\";
-                string documentsShellPath = userShellFolders.ReadString(@"Personal") + @"\";
+
 
                 if (documentsShellPath != oneDriveDocumentsPath)
                 {
@@ -198,14 +217,15 @@ namespace DSTools
                     FileIOPermission f = new FileIOPermission(PermissionState.Unrestricted);
                     f.AllFiles = FileIOPermissionAccess.AllAccess;
                     FileSystem.CopyDirectory(documentsShellPath, oneDriveDocumentsPath, showUI, onUserCancel);
-
-                    userShellFolders.WriteString(@"Personal", oneDriveDocumentsPath.TrimEnd(char.Parse(@"\")));
                 }
             }
             catch (Exception dMoveEx)
             {
                 MessageBox.Show(dMoveEx.Message);
             }
+
+            userShellFolders.WriteString(@"Personal", oneDriveDocumentsPath.TrimEnd(char.Parse(@"\")));
+
             RestartProcess.RestartProcessByFileName("explorer");
 
             UpdateOnedriveInfo();
@@ -227,17 +247,24 @@ namespace DSTools
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void RestoreOneDrive_Click(object sender, EventArgs e)
         {
             RestoreOneDriveReg();
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void Uninstall_Click(object sender, EventArgs e)
         {
-            Process process = Process.Start(@"Services\TotalUninstaller.exe");
+            try
+            {
+                Process process = Process.Start(@"Services\TotalUninstaller.exe");
+            }
+            catch(Exception ee)
+            {
+                MessageBox.Show(ee.Message);
+            }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void DefaultChrome_Click(object sender, EventArgs e)
         {
             try
             {
@@ -245,12 +272,139 @@ namespace DSTools
                 psi.FileName = @"Services\SetDefaultBrowser\SetDefaultBrowser.exe";
                 psi.Arguments = "HKLM \"Google Chrome\"";
                 psi.UseShellExecute = false;
-                psi.RedirectStandardOutput = true;
                 Process proc = Process.Start(psi);
             }
             catch(Win32Exception ee)
             {
                 MessageBox.Show(ee.Message);
+            }
+        }
+
+        private void companyLinks_Click(object sender, EventArgs e)
+        {
+            UIOption showUI = UIOption.AllDialogs;
+            UICancelOption onUserCancel = UICancelOption.ThrowException;
+            try
+            {
+                FileSystem.CopyDirectory(@"Company Links", @"C:\Users\Default\Desktop\Company Links", showUI, onUserCancel);
+                FileSystem.CopyDirectory(@"Company Links", @"C:\Users\" + Environment.UserName + @"\Desktop\Company Links", showUI, onUserCancel);
+            }
+            catch(Exception ee)
+            {
+                MessageBox.Show(ee.Message);
+            }
+
+        }
+
+        private void addToStarup_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void adminAdd_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = @"net";
+                psi.Arguments = @"localgroup administrators " + newAdminUsername.Text + " /add";
+                psi.RedirectStandardError = true;
+                psi.RedirectStandardOutput = true;
+                psi.UseShellExecute = false;
+                Process proc = Process.Start(psi);
+                LoadAdminGroup();
+            }
+            catch (Win32Exception ee)
+            {
+                MessageBox.Show(ee.Message);
+            }
+        }
+
+        private void adminRemove_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = @"net";
+                psi.Arguments = @"localgroup administrators " + newAdminUsername.Text + " /delete | PAUSE";
+                psi.RedirectStandardError = true;
+                psi.RedirectStandardOutput = true;
+                psi.UseShellExecute = false;
+                Process proc = Process.Start(psi);
+                LoadAdminGroup();
+            }
+            catch (Win32Exception ee)
+            {
+                MessageBox.Show(ee.Message);
+            }
+        }
+
+        private void Send_Click(object sender, EventArgs e)
+        {
+            //ini file
+            var parser = new FileIniDataParser();
+            IniData data = parser.ReadFile("config.ini");
+
+            //var aesKey = EncryptProvider.CreateAesKey();
+            //var key = aesKey.Key;
+            //var iv = aesKey.IV;
+
+            //var plainTextPassword = "";
+            //var plainTextEmailFrom = "";
+            //var plainTextEmailTo = "";
+
+            //var ePass = EncryptProvider.AESEncrypt(plainTextPassword, key, iv);
+            //var eEmailFrom = EncryptProvider.AESEncrypt(plainTextEmailFrom, key, iv);
+            //var eEmailTo = EncryptProvider.AESEncrypt(plainTextEmailTo, key, iv);
+
+            //data["Auth"]["tbp"] = ePass;
+            //data["Auth"]["efr"] = eEmailFrom;
+            //data["Auth"]["eto"] = eEmailTo;
+            //data["Auth"]["k"] = key;
+            //data["Auth"]["4"] = iv;
+            //parser.WriteFile("config.ini", data);
+
+            var aesKey = EncryptProvider.CreateAesKey();
+            var key = data["Auth"]["k"];
+            var iv = data["Auth"]["4"];
+
+            var encryptedP = data["Auth"]["tbp"];
+            var decryptedP = EncryptProvider.AESDecrypt(encryptedP, key, iv);
+
+            var encryptedF = data["Auth"]["efr"];
+            var decryptedF = EncryptProvider.AESDecrypt(encryptedF, key, iv);
+
+            var encryptedT = data["Auth"]["eto"];
+            var decryptedT = EncryptProvider.AESDecrypt(encryptedT, key, iv);
+
+            var fromAddress = new MailAddress(decryptedF);
+            var toAddress = new MailAddress(decryptedT);
+            string fromPassword = decryptedP;
+            string subject = "New Setup-" + hostname.Text;
+            string body =
+                "Make: " + make.Text + "\n" +
+                "Model: " + model.Text + "\n" +
+                "Serial: " + machineSerial.Text + "\n" +
+                "Hardware ID: " + deviceID.Text + "\n" +
+                "Security ID: " + SID.Text + "\n";
+
+            var smtp = new SmtpClient
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword),
+                Timeout = 20000
+            };
+            using (var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body
+            })
+            {
+                smtp.Send(message);
             }
         }
     }

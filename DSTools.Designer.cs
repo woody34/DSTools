@@ -57,8 +57,18 @@ namespace DSTools
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.uninstallPrograms = new System.Windows.Forms.Button();
+            this.defaultChrome = new System.Windows.Forms.Button();
+            this.addToStarup = new System.Windows.Forms.Button();
+            this.companyLinks = new System.Windows.Forms.Button();
+            this.userToPromt = new System.Windows.Forms.Label();
+            this.newAdminUsername = new System.Windows.Forms.TextBox();
+            this.adminAdd = new System.Windows.Forms.Button();
+            this.adminGroup = new System.Windows.Forms.Label();
+            this.adminRemove = new System.Windows.Forms.Button();
+            this.oneDriveVersion = new System.Windows.Forms.Label();
+            this.version = new System.Windows.Forms.Label();
+            this.Send = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // serial
@@ -240,7 +250,7 @@ namespace DSTools
             this.oneDriveRestore.TabIndex = 19;
             this.oneDriveRestore.Text = "Restore OneDrive";
             this.oneDriveRestore.UseVisualStyleBackColor = true;
-            this.oneDriveRestore.Click += new System.EventHandler(this.button1_Click);
+            this.oneDriveRestore.Click += new System.EventHandler(this.RestoreOneDrive_Click);
             // 
             // label1
             // 
@@ -322,33 +332,142 @@ namespace DSTools
             this.label8.TabIndex = 27;
             this.label8.Text = "OneDrive For Business:";
             // 
-            // button1
+            // uninstallPrograms
             // 
-            this.button1.Location = new System.Drawing.Point(12, 99);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(101, 23);
-            this.button1.TabIndex = 28;
-            this.button1.Text = "Uninstall Programs";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            this.uninstallPrograms.Location = new System.Drawing.Point(12, 99);
+            this.uninstallPrograms.Name = "uninstallPrograms";
+            this.uninstallPrograms.Size = new System.Drawing.Size(101, 23);
+            this.uninstallPrograms.TabIndex = 28;
+            this.uninstallPrograms.Text = "Uninstall Programs";
+            this.uninstallPrograms.UseVisualStyleBackColor = true;
+            this.uninstallPrograms.Click += new System.EventHandler(this.Uninstall_Click);
             // 
-            // button2
+            // defaultChrome
             // 
-            this.button2.Location = new System.Drawing.Point(120, 99);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(123, 23);
-            this.button2.TabIndex = 29;
-            this.button2.Text = "Default Google Chome";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.defaultChrome.Location = new System.Drawing.Point(120, 99);
+            this.defaultChrome.Name = "defaultChrome";
+            this.defaultChrome.Size = new System.Drawing.Size(123, 23);
+            this.defaultChrome.TabIndex = 29;
+            this.defaultChrome.Text = "Default Google Chome";
+            this.defaultChrome.UseVisualStyleBackColor = true;
+            this.defaultChrome.Click += new System.EventHandler(this.DefaultChrome_Click);
+            // 
+            // addToStarup
+            // 
+            this.addToStarup.Location = new System.Drawing.Point(120, 128);
+            this.addToStarup.Name = "addToStarup";
+            this.addToStarup.Size = new System.Drawing.Size(123, 23);
+            this.addToStarup.TabIndex = 30;
+            this.addToStarup.Text = "Add DST  to Starup";
+            this.addToStarup.UseVisualStyleBackColor = true;
+            this.addToStarup.Click += new System.EventHandler(this.addToStarup_Click);
+            // 
+            // companyLinks
+            // 
+            this.companyLinks.Location = new System.Drawing.Point(12, 128);
+            this.companyLinks.Name = "companyLinks";
+            this.companyLinks.Size = new System.Drawing.Size(101, 23);
+            this.companyLinks.TabIndex = 30;
+            this.companyLinks.Text = "Company Links";
+            this.companyLinks.UseVisualStyleBackColor = true;
+            this.companyLinks.Click += new System.EventHandler(this.companyLinks_Click);
+            // 
+            // userToPromt
+            // 
+            this.userToPromt.AutoSize = true;
+            this.userToPromt.Cursor = System.Windows.Forms.Cursors.Default;
+            this.userToPromt.Location = new System.Drawing.Point(12, 158);
+            this.userToPromt.Name = "userToPromt";
+            this.userToPromt.Size = new System.Drawing.Size(214, 13);
+            this.userToPromt.TabIndex = 31;
+            this.userToPromt.Text = "Username to Promote to Local Admin Group";
+            // 
+            // newAdminUsername
+            // 
+            this.newAdminUsername.Location = new System.Drawing.Point(12, 175);
+            this.newAdminUsername.Name = "newAdminUsername";
+            this.newAdminUsername.Size = new System.Drawing.Size(136, 20);
+            this.newAdminUsername.TabIndex = 32;
+            this.newAdminUsername.Text = "AzureAD\\JohnDoe";
+            // 
+            // adminAdd
+            // 
+            this.adminAdd.Location = new System.Drawing.Point(155, 173);
+            this.adminAdd.Name = "adminAdd";
+            this.adminAdd.Size = new System.Drawing.Size(51, 23);
+            this.adminAdd.TabIndex = 33;
+            this.adminAdd.Text = "Add";
+            this.adminAdd.UseVisualStyleBackColor = true;
+            this.adminAdd.Click += new System.EventHandler(this.adminAdd_Click);
+            // 
+            // adminGroup
+            // 
+            this.adminGroup.AutoSize = true;
+            this.adminGroup.Cursor = System.Windows.Forms.Cursors.No;
+            this.adminGroup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.adminGroup.Location = new System.Drawing.Point(13, 204);
+            this.adminGroup.Name = "adminGroup";
+            this.adminGroup.Size = new System.Drawing.Size(105, 13);
+            this.adminGroup.TabIndex = 34;
+            this.adminGroup.Text = "net localgroup admin";
+            // 
+            // adminRemove
+            // 
+            this.adminRemove.ImageAlign = System.Drawing.ContentAlignment.TopRight;
+            this.adminRemove.Location = new System.Drawing.Point(212, 173);
+            this.adminRemove.Name = "adminRemove";
+            this.adminRemove.Size = new System.Drawing.Size(58, 23);
+            this.adminRemove.TabIndex = 35;
+            this.adminRemove.Text = "Remove";
+            this.adminRemove.UseVisualStyleBackColor = true;
+            this.adminRemove.Click += new System.EventHandler(this.adminRemove_Click);
+            // 
+            // oneDriveVersion
+            // 
+            this.oneDriveVersion.AutoSize = true;
+            this.oneDriveVersion.Enabled = false;
+            this.oneDriveVersion.Location = new System.Drawing.Point(271, 106);
+            this.oneDriveVersion.Name = "oneDriveVersion";
+            this.oneDriveVersion.Size = new System.Drawing.Size(93, 13);
+            this.oneDriveVersion.TabIndex = 36;
+            this.oneDriveVersion.Text = "OneDrive Version:";
+            // 
+            // version
+            // 
+            this.version.AutoSize = true;
+            this.version.Location = new System.Drawing.Point(360, 106);
+            this.version.Name = "version";
+            this.version.Size = new System.Drawing.Size(42, 13);
+            this.version.TabIndex = 37;
+            this.version.Text = "Version";
+            // 
+            // Send
+            // 
+            this.Send.Location = new System.Drawing.Point(695, 366);
+            this.Send.Name = "Send";
+            this.Send.Size = new System.Drawing.Size(98, 43);
+            this.Send.TabIndex = 38;
+            this.Send.Text = "Email Data";
+            this.Send.UseVisualStyleBackColor = true;
+            this.Send.Click += new System.EventHandler(this.Send_Click);
             // 
             // FormDSTools
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.Send);
+            this.Controls.Add(this.version);
+            this.Controls.Add(this.oneDriveVersion);
+            this.Controls.Add(this.adminRemove);
+            this.Controls.Add(this.adminGroup);
+            this.Controls.Add(this.adminAdd);
+            this.Controls.Add(this.newAdminUsername);
+            this.Controls.Add(this.userToPromt);
+            this.Controls.Add(this.companyLinks);
+            this.Controls.Add(this.addToStarup);
+            this.Controls.Add(this.defaultChrome);
+            this.Controls.Add(this.uninstallPrograms);
             this.Controls.Add(this.SID);
             this.Controls.Add(this.onedrive);
             this.Controls.Add(this.documents);
@@ -413,8 +532,18 @@ namespace DSTools
         private Label label6;
         private Label label7;
         private Label label8;
-        private Button button1;
-        private Button button2;
+        private Button uninstallPrograms;
+        private Button defaultChrome;
+        private Button addToStarup;
+        private Button companyLinks;
+        private Label userToPromt;
+        private TextBox newAdminUsername;
+        private Button adminAdd;
+        private Label adminGroup;
+        private Button adminRemove;
+        private Label oneDriveVersion;
+        private Label version;
+        private Button Send;
     }
 }
 
